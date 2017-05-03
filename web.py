@@ -1,11 +1,6 @@
 import sqlite3
-from flask import Flask
-from flask import render_template
-from flask import g
-
-#import sys
-#reload(sys)
-#sys.setdefaultencoding('utf8')
+import os
+from flask import Flask,render_template, g, redirect
 
 
 app = Flask(__name__)
@@ -42,5 +37,11 @@ def latest():
     flts = [new for new in results if new['downtime']==latest]
     return render_template('index.html', news=flts, latest=latest)
 
+@app.route('/refresh')
+def refresh():
+    os.system('python getnews.py')
+    return redirect('/latest')
+
+    
 if __name__=='__main__':
     app.run(debug=True)

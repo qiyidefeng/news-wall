@@ -23,10 +23,15 @@
     }
     #all {
         position:absolute;
-        right:90px;
+        right:160px;
         top:20px;
     }
     #latest {
+        position:absolute;
+        right:90px;
+        top:20px;
+    }
+    #refresh {
         position:absolute;
         right:20px;
         top:20px;
@@ -60,6 +65,7 @@
             <h1>News Wall</h1>
             <a id='all' href='/'>All</a>
             <a id='latest' href='/latest'>Latest</a>
+            <a id='refresh' href='/refresh'>Refresh</a>
         </div>
         {% for new in news %}
         <div>
@@ -70,6 +76,7 @@
             <a class='href' href="{{new['url']}}">{{new['title']}}</a>
             {% endif %}
             <span class='date'>{{new['pubtime']}}</span>
+            <input type="checkbox" name="abc" />
         </div>
         <hr>
         {% endfor %}
