@@ -58,7 +58,7 @@ def theregister(data):
     soap = BeautifulSoup(data, 'html.parser')
     tags = soap.select('.headlines')[0].select('.story_link')
     for tag in tags:
-        save('theregister', tag.select('.time_stamp')[0].span.string, 'http://www.theregister.co.uk/'+tag['href'], tag.h4.string)
+        save('theregister', tag.select('.time_stamp')[0].span.string, 'http://www.theregister.co.uk'+tag['href'], tag.h4.string)
 
 def securityaffairs(data):
     soap = BeautifulSoup(data, 'html.parser')

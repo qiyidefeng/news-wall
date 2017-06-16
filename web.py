@@ -39,7 +39,7 @@ def latest():
 
 @app.route('/refresh')
 def refresh():
-    os.system('python getnews.py')
+    os.system('python getnewstitle.py')
     return redirect('/latest')
 
     
