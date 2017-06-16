@@ -5,12 +5,23 @@ import sqlite3
 import datetime
 from bs4 import BeautifulSoup
 
+headers={
+    'Connection': 'keep-alive',
+    'Cache-Control': 'max-age=0',
+    'Upgrade-Insecure-Requests': '1',
+    'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US) AppleWebKit/534.14 (KHTML, like Gecko) Chrome/9.0.601.0 Safari/534.14',
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'en-US,en;q=0.8',
+}
+
 
 async def run(loop, url):
     try:
         async with aiohttp.ClientSession(loop=loop) as session:
             with aiohttp.Timeout(20, loop=session.loop):
-                async with session.get(url) as response:
+                async with session.get(url, headers=headers) as response:
                     data = await response.text()
                     parse(url,data)
     except Exception as e:
@@ -33,6 +44,16 @@ def save(src, date, url, title):
     except sqlite3.IntegrityError as e:
         #print('dumplicated!')
         pass
+
+def threatpost(data):
+    soap = BeautifulSoup(data, 'html.parser')
+    tags = soap.select('#latest-posts article')
+    for tag in tags:
+        title = tag.h3.a['title']
+        url = tag.h3.a['href']
+        date = tag.select('time')[0].string
+        save('threatpost', date, url, title)
+    
 
 
 def freebuf(data):
@@ -87,6 +108,8 @@ def parse(url, data):
         theregister(data)
     elif(url=='securityaffairs'):
         securityaffairs(data)
+    elif(url=='threatpost'):
+        threatpost(data)
 
 def initdb():
     db = sqlite3.connect('data.db')
@@ -105,7 +128,7 @@ if __name__=='__main__':
     start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
     loop = asyncio.get_event_loop()
-    #loop.run_until_complete(asyncio.gather(*[run(loop, 'http://securityaffairs.co/wordpress/')]))
-    loop.run_until_complete(asyncio.gather(*[run(loop, 'http://securityaffairs.co/wordpress/'), run(loop, 'http://www.theregister.co.uk/security/'), run(loop, 'http://hackernews.cc/'), run(loop, 'http://www.freebuf.com'), run_easyaq(loop, 'https://www.easyaq.com/infoList')]))
+    #loop.run_until_complete(asyncio.gather(*[run(loop, 'https://threatpost.com/blog/')]))
+    loop.run_until_complete(asyncio.gather(*[run(loop, 'http://securityaffairs.co/wordpress/'), run(loop, 'http://www.theregister.co.uk/security/'), run(loop, 'http://hackernews.cc/'), run(loop, 'http://www.freebuf.com'), run_easyaq(loop, 'https://www.easyaq.com/infoList'), run(loop, 'https://threatpost.com/blog/')]))
     closedb(db, cu)
 
