@@ -45,6 +45,16 @@ def save(src, date, url, title):
         #print('dumplicated!')
         pass
 
+def trendmicro(data):
+    soap = BeautifulSoup(data, 'html.parser')
+    tags = soap.select('.post')
+    for tag in tags:
+        title = tag.div.div.a.h1.string
+        url = tag.div.div.a['href']
+        date = tag.select('.post-date')[0].div.a.string
+        save('trendmicro', date, url, title)
+
+
 def threatpost(data):
     soap = BeautifulSoup(data, 'html.parser')
     tags = soap.select('#latest-posts article')
@@ -88,28 +98,20 @@ def securityaffairs(data):
         save('securityaffairs', tag.select('.post_detail')[0].a.string, tag.select('.post_header')[0].h3.a['href'], tag.select('.post_header')[0].h3.a['title'])
 
 def parse(url, data):
-    if(url.startswith('https')):
-        url = url[8:]
-    else:
-        url = url[7:]
-    words = url.split('.')
-    if(words[0]=='www'):
-        url = words[1]
-    else:
-        url = words[0]
-
-    if(url=='freebuf'):
+    if('freebuf' in url):
         freebuf(data)
-    elif(url=='easyaq'):
+    elif('easyaq' in url):
         easyaq(data)
-    elif(url=='hackernews'):
+    elif('hackernews' in url):
         hackernews(data)
-    elif(url=='theregister'):
+    elif('theregister' in url):
         theregister(data)
-    elif(url=='securityaffairs'):
+    elif('securityaffairs' in url):
         securityaffairs(data)
-    elif(url=='threatpost'):
+    elif('threatpost' in url):
         threatpost(data)
+    elif('trendmicro' in url):
+        trendmicro(data)
 
 def initdb():
     db = sqlite3.connect('data.db')
@@ -128,7 +130,17 @@ if __name__=='__main__':
     start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
     loop = asyncio.get_event_loop()
-    #loop.run_until_complete(asyncio.gather(*[run(loop, 'https://threatpost.com/blog/')]))
-    loop.run_until_complete(asyncio.gather(*[run(loop, 'http://securityaffairs.co/wordpress/'), run(loop, 'http://www.theregister.co.uk/security/'), run(loop, 'http://hackernews.cc/'), run(loop, 'http://www.freebuf.com'), run_easyaq(loop, 'https://www.easyaq.com/infoList'), run(loop, 'https://threatpost.com/blog/')]))
+    #loop.run_until_complete(asyncio.gather(*[run(loop, 'http://blog.trendmicro.com')]))
+    url_list =['http://securityaffairs.co/wordpress/',
+               'http://www.theregister.co.uk/security/',
+               'http://hackernews.cc/',
+               'http://www.freebuf.com',
+               'https://threatpost.com/blog/',
+               'http://blog.trendmicro.com']
+    tasks = []
+    for url in url_list:
+        tasks.append(run(loop, url))
+    tasks.append(run_easyaq(loop, 'https://www.easyaq.com/infoList'))
+    loop.run_until_complete(asyncio.gather(*tasks))
     closedb(db, cu)
 
